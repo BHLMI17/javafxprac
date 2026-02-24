@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -34,12 +37,20 @@
          <right>
             <VBox fx:id="scheduleCreationBox" alignment="TOP_CENTER" disable="true" managed="false" prefHeight="200.0" prefWidth="158.0" visible="false" BorderPane.alignment="CENTER">
                <children>
-                  <Label alignment="TOP_CENTER" text="Please Enter Some Account Schedule Details" textAlignment="CENTER" wrapText="true">
-                     <font>
-                        <Font size="10.0" />
-                     </font>
-                  </Label>
-                  <Button fx:id="BackButton" managed="false" mnemonicParsing="false" onAction="#closeScheduleScreen" text="Back" />
+                  <HBox prefHeight="100.0" prefWidth="200.0">
+                     <children>
+                        <Label alignment="TOP_CENTER" text="Please Enter Some Account Schedule Details" textAlignment="CENTER" wrapText="true">
+                           <font>
+                              <Font size="10.0" />
+                           </font>
+                        </Label>
+                        <Button fx:id="BackButton" managed="false" mnemonicParsing="false" onAction="#closeScheduleScreen" text="Back" />
+                     </children>
+                  </HBox>
+                  <TextField fx:id="itemName" promptText="Event Name" />
+                  <Spinner fx:id="timeSpinner" />
+                  <DatePicker fx:id="datePicker" />
+                  <Button fx:id="confirmItemButton" mnemonicParsing="false" onAction="#confirmItemAddition" text="Confirm Item" />
                </children>
             </VBox>
          </right>
