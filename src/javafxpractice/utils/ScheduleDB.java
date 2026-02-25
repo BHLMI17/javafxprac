@@ -8,6 +8,22 @@ public class ScheduleDB {
 	private ArrayList<ScheduleItem> userSchedule;
 	
 	
+	public ScheduleDB() {
+        this.userSchedule = new ArrayList<>();
+    }
+
+	@Override
+	public String toString() {
+	    StringBuilder sb = new StringBuilder("ScheduleDB:\n");
+
+	    for (ScheduleItem item : userSchedule) {
+	        sb.append(" - ").append(item).append("\n");
+	    }
+
+	    return sb.toString();
+	}
+
+	
 	public void addNewItem(ScheduleItem item) {
 		userSchedule.add(item);
 	}

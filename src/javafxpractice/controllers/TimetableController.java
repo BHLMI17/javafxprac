@@ -30,10 +30,14 @@ public class TimetableController {
     @FXML private VBox scheduleCreationBox;
     @FXML private Button confirmItemButton;
     @FXML private Spinner<LocalTime> timeSpinner;
+    @FXML private Spinner<LocalTime> durationSpinner;
     @FXML private DatePicker datePicker;
     @FXML private TextField itemName;
 
+    
     private static final int HOURS = 24;
+    private static final int DAYS = 7;
+    private static final double DAY_WIDTH = 200; // pixels per hour
     private static final double HOUR_HEIGHT = 80; // pixels per hour
     
     
@@ -52,14 +56,23 @@ public class TimetableController {
 
         // Make timetablePane resize with ScrollPane viewport
         timeScroll.viewportBoundsProperty().addListener((obs, oldVal, newVal) -> {
-            timetablePane.setPrefWidth(newVal.getWidth());
+//            timetablePane.setPrefWidth(newVal.getWidth());
         });
+        
+        
 
         // Give the timetable enough height to scroll
         timetablePane.setPrefHeight((HOURS + 1) * HOUR_HEIGHT);
+        
+     // Give the timetable enough width to scroll
+        timetablePane.setPrefWidth((DAYS + 1) * DAY_WIDTH);
+        
 
         // Generate the hour lines
         generateHourLines();
+        
+        //Generate the day lines
+        generateDayLines();
 
         // Optional: test line
 //        addTestLine();
@@ -115,13 +128,35 @@ public class TimetableController {
     
     @FXML
     public void confirmItemAddition() {
-    	
-    	if(itemName.getText().isEmpty() && datePicker.getValue() != null && timeSpinner.getValue() != null) {
+    	ScheduleDB db = new ScheduleDB();
+
+    	if(itemName.getText().isEmpty() == false && datePicker.getValue() != null && timeSpinner.getValue() != null) {
     		//make the values match from all of the items here
     		//realising i missed an item that allows the user to pick the duration of task
-    		new ScheduleItem(null, null, null, 0);
+    		ScheduleItem inputtedItem = new ScheduleItem(datePicker.getValue(), timeSpinner.getValue(),itemName.getText(), 0);
+    		db.addNewItem(inputtedItem);
+    		System.out.println(db.toString());
+    		
     	}
     	
+    }
+    
+    
+    private void generateDayLines() {
+        for (int i = 0; i <= DAYS; i++) {
+            double x = i * DAY_WIDTH;
+
+            Line line = new Line();
+            line.setStartX(x);
+            line.setStartY(0);
+            line.endYProperty().bind(timetablePane.heightProperty());
+            line.setEndX(x);
+
+            line.setStroke(Color.GRAY);
+            line.setStrokeWidth(1);
+
+            timetablePane.getChildren().add(line);
+        }
     }
     
     
@@ -146,12 +181,12 @@ public class TimetableController {
         }
     }
 
-    private void addTestLine() {
-        Line testLine = new Line(0, 100, 0, 100);
-        testLine.endXProperty().bind(timetablePane.widthProperty());
-        testLine.setStroke(Color.RED);
-        testLine.setStrokeWidth(2);
-
-        timetablePane.getChildren().add(testLine);
-    }
+//    private void addTestLine() {
+//        Line testLine = new Line(0, 100, 0, 100);
+//        testLine.endXProperty().bind(timetablePane.widthProperty());
+//        testLine.setStroke(Color.RED);
+//        testLine.setStrokeWidth(2);
+//
+//        timetablePane.getChildren().add(testLine);
+//    }
 }

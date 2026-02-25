@@ -15,7 +15,15 @@ public class ScheduleItem {
 		durationOfTask = dOT;
 	}
 	
-	
+	@Override
+	public String toString() {
+	    return "ScheduleItem{" +
+	            "name='" + task + '\'' +
+	            ", date=" + scheduledDate +
+	            ", time=" + scheduledTime +
+	            ", duration=" + durationOfTask +
+	            '}';
+	}
 	
 	
 }

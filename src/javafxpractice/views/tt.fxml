@@ -18,7 +18,7 @@
         <BorderPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
             <center>
-                <ScrollPane fx:id="timeScroll" fitToHeight="false" fitToWidth="true" pannable="true">
+                <ScrollPane fx:id="timeScroll" fitToHeight="false" fitToWidth="false" pannable="true">
 
                     <content>
                         <!-- This is your timetable canvas -->
@@ -35,7 +35,7 @@
             </HBox>
          </top>
          <right>
-            <VBox fx:id="scheduleCreationBox" alignment="TOP_CENTER" disable="true" managed="false" prefHeight="200.0" prefWidth="158.0" visible="false" BorderPane.alignment="CENTER">
+            <VBox fx:id="scheduleCreationBox" alignment="TOP_CENTER" disable="true" managed="false" prefHeight="200.0" prefWidth="250.0" visible="false" BorderPane.alignment="CENTER">
                <children>
                   <HBox prefHeight="100.0" prefWidth="200.0">
                      <children>
@@ -49,6 +49,7 @@
                   </HBox>
                   <TextField fx:id="itemName" promptText="Event Name" />
                   <Spinner fx:id="timeSpinner" />
+                  <Spinner fx:id="durationSpinner" layoutX="3.0" layoutY="51.0" />
                   <DatePicker fx:id="datePicker" />
                   <Button fx:id="confirmItemButton" mnemonicParsing="false" onAction="#confirmItemAddition" text="Confirm Item" />
                </children>
