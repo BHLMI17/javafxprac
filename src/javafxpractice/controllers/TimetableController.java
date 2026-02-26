@@ -1,5 +1,6 @@
 package javafxpractice.controllers;
 
+import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
@@ -30,14 +32,14 @@ public class TimetableController {
     @FXML private VBox scheduleCreationBox;
     @FXML private Button confirmItemButton;
     @FXML private Spinner<LocalTime> timeSpinner;
-    @FXML private Spinner<LocalTime> durationSpinner;
+    @FXML private Spinner<Duration> durationSpinner;
     @FXML private DatePicker datePicker;
     @FXML private TextField itemName;
 
     
     private static final int HOURS = 24;
     private static final int DAYS = 7;
-    private static final double DAY_WIDTH = 200; // pixels per hour
+    private static final double DAY_WIDTH = 200; // pixels per day
     private static final double HOUR_HEIGHT = 80; // pixels per hour
     
     
@@ -133,7 +135,7 @@ public class TimetableController {
     	if(itemName.getText().isEmpty() == false && datePicker.getValue() != null && timeSpinner.getValue() != null) {
     		//make the values match from all of the items here
     		//realising i missed an item that allows the user to pick the duration of task
-    		ScheduleItem inputtedItem = new ScheduleItem(datePicker.getValue(), timeSpinner.getValue(),itemName.getText(), 0);
+    		ScheduleItem inputtedItem = new ScheduleItem(datePicker.getValue(), timeSpinner.getValue(),itemName.getText(), null);
     		db.addNewItem(inputtedItem);
     		System.out.println(db.toString());
     		
@@ -160,10 +162,7 @@ public class TimetableController {
     }
     
     
-    
-    
-
-    
+       
     private void generateHourLines() {
         for (int i = 0; i <= HOURS; i++) {
             double y = i * HOUR_HEIGHT;
@@ -180,6 +179,13 @@ public class TimetableController {
             timetablePane.getChildren().add(line);
         }
     }
+    
+    private void generateDOW() {
+    	Label dayLabel = new Label();
+    	dayLabel.setLayoutX(0);
+    }
+    
+    
 
 //    private void addTestLine() {
 //        Line testLine = new Line(0, 100, 0, 100);
