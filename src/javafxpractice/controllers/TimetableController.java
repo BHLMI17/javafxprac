@@ -1,5 +1,6 @@
 package javafxpractice.controllers;
 
+import java.lang.reflect.Array;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +36,7 @@ public class TimetableController {
     @FXML private Spinner<Duration> durationSpinner;
     @FXML private DatePicker datePicker;
     @FXML private TextField itemName;
+    private String[] dayName = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
 
     
     private static final int HOURS = 24;
@@ -75,6 +77,12 @@ public class TimetableController {
         
         //Generate the day lines
         generateDayLines();
+        
+        //Add the date at the top of each row on the graph
+        generateDOW();
+        
+        //Add the time on the side of each column on the graph
+        generateHOD();
 
         // Optional: test line
 //        addTestLine();
@@ -181,8 +189,30 @@ public class TimetableController {
     }
     
     private void generateDOW() {
+    	for (int i = 1; i<=DAYS; i++) {
     	Label dayLabel = new Label();
-    	dayLabel.setLayoutX(0);
+    	dayLabel.setLayoutX((i * DAY_WIDTH) + 10);
+    	dayLabel.setLayoutY(0);
+    	dayLabel.setText(dayName[i-1]);
+    	timetablePane.getChildren().add(dayLabel);
+    	}
+    }
+    
+    
+    private void generateHOD() {
+    	for (int i = 1; i<=HOURS; i++) {
+        	Label hourLabel = new Label();
+        	hourLabel.setLayoutX(10);
+        	hourLabel.setLayoutY((i * HOUR_HEIGHT) + 10);
+        	if(i<10) {
+        		hourLabel.setText("0"+i+":00");
+        	}
+        	else {
+        		hourLabel.setText(i+":00");
+        	}
+        	
+        	timetablePane.getChildren().add(hourLabel);
+        	}
     }
     
     
