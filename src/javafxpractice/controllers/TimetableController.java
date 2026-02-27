@@ -205,10 +205,10 @@ public class TimetableController {
         	hourLabel.setLayoutX(10);
         	hourLabel.setLayoutY((i * HOUR_HEIGHT) + 10);
         	if(i<10) {
-        		hourLabel.setText("0"+i+":00");
+        		hourLabel.setText("0"+(i - 1)+":00");
         	}
         	else {
-        		hourLabel.setText(i+":00");
+        		hourLabel.setText(((i - 1))+":00");
         	}
         	
         	timetablePane.getChildren().add(hourLabel);
