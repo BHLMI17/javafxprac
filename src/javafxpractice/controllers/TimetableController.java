@@ -1,6 +1,5 @@
 package javafxpractice.controllers;
 
-import java.lang.reflect.Array;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -37,6 +36,9 @@ public class TimetableController {
     @FXML private DatePicker datePicker;
     @FXML private TextField itemName;
     private String[] dayName = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
+    private final ScheduleDB db = new ScheduleDB();
+
+
 
     
     private static final int HOURS = 24;
@@ -138,7 +140,7 @@ public class TimetableController {
     
     @FXML
     public void confirmItemAddition() {
-    	ScheduleDB db = new ScheduleDB();
+    	
 
     	if(itemName.getText().isEmpty() == false && datePicker.getValue() != null && timeSpinner.getValue() != null) {
     		//make the values match from all of the items here
@@ -188,6 +190,8 @@ public class TimetableController {
         }
     }
     
+    
+    //generate the day label at the right place
     private void generateDOW() {
     	for (int i = 1; i<=DAYS; i++) {
     	Label dayLabel = new Label();
@@ -198,7 +202,7 @@ public class TimetableController {
     	}
     }
     
-    
+    //generate the hour labels at the correct location
     private void generateHOD() {
     	for (int i = 1; i<=HOURS; i++) {
         	Label hourLabel = new Label();
