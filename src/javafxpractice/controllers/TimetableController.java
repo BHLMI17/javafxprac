@@ -1,12 +1,15 @@
 package javafxpractice.controllers;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
@@ -35,11 +38,20 @@ public class TimetableController {
     @FXML private Spinner<Duration> durationSpinner;
     @FXML private DatePicker datePicker;
     @FXML private TextField itemName;
+    @FXML private Label mondayLabel;
+    @FXML private Button pWB;
+    @FXML private Button nWB;
+    
+    
+    
+//    @FXML private Button NSButton;
     private String[] dayName = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
     private final ScheduleDB db = new ScheduleDB();
-
-
-
+    
+    
+    LocalDate selected = LocalDate.now(); // or from DatePicker
+    LocalDate monday = selected.with(DayOfWeek.MONDAY);
+    private LocalDate currentWeekStart;
     
     private static final int HOURS = 24;
     private static final int DAYS = 7;
@@ -53,6 +65,54 @@ public class TimetableController {
     @FXML
     public void initialize() {
     	List<LocalTime> times = new ArrayList<>();
+    	
+    	
+
+    	
+    	
+    	
+    	
+    		//need to instantiate a new arraylist for all the possible durations of the event
+    	    ObservableList<Duration> durations = FXCollections.observableArrayList();
+
+    	    Duration min = Duration.ofMinutes(15);
+    	    Duration max = Duration.ofHours(5);
+    	    Duration step = Duration.ofMinutes(15);
+    	    
+    	    //incrementing the duration
+    	    for (Duration d = min; !d.minus(max).isPositive(); d = d.plus(step)) {
+    	        durations.add(d);
+    	    }
+
+    	    //setting spinner values
+    	    SpinnerValueFactory<Duration> durationFactory =
+    	        new SpinnerValueFactory.ListSpinnerValueFactory<>(durations);
+    	    //converter
+    	    durationFactory.setConverter(new StringConverter<Duration>() {
+    	        @Override
+    	        public String toString(Duration d) {
+    	            long hours = d.toHours();
+    	            long minutes = d.toMinutesPart();
+
+    	            if (hours > 0 && minutes > 0) return hours + "h " + minutes + "m";
+    	            if (hours > 0) return hours + "h";
+    	            return minutes + "m";
+    	        }
+
+    	        @Override
+    	        public Duration fromString(String s) {
+    	            return null; // only needed if editable
+    	        }
+    	    });
+
+    	    durationSpinner.setValueFactory(durationFactory);
+    	    durationSpinner.setEditable(false);
+    	
+    	    
+    	
+    	currentWeekStart = LocalDate.now().with(DayOfWeek.MONDAY);
+    	renderWeek(currentWeekStart);
+    	
     	
     	for(int hour = 0; hour < 24; hour++) {
     		for(int minute = 0; minute < 60; minute +=15) {
@@ -90,12 +150,12 @@ public class TimetableController {
 //        addTestLine();
         
         
-        SpinnerValueFactory<LocalTime> factory =
+        SpinnerValueFactory<LocalTime> timeFactory =
                 new SpinnerValueFactory.ListSpinnerValueFactory<>(
                     FXCollections.observableArrayList(times)
                 );
 
-            factory.setConverter(new StringConverter<LocalTime>() {
+            timeFactory.setConverter(new StringConverter<LocalTime>() {
                 @Override
                 public String toString(LocalTime time) {
                     return time.format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -107,15 +167,43 @@ public class TimetableController {
                 }
             });
 
-            timeSpinner.setValueFactory(factory);
+            timeSpinner.setValueFactory(timeFactory);
 
     }
 
+   
+    
+    public void renderWeek(LocalDate weekStart) {
+        List<LocalDate> week = new ArrayList<>();
+
+        for (int i = 0; i < 7; i++) {
+            week.add(weekStart.plusDays(i));
+        }
+
+        // Update your UI labels here
+         mondayLabel.setText("Week Beginning:" + week.get(0).toString());
+        // ...
+    }
+    
+    
+    @FXML
+    private void nextWeek() {
+        currentWeekStart = currentWeekStart.plusWeeks(1);
+        renderWeek(currentWeekStart);
+    }
+
+    @FXML
+    private void previousWeek() {
+        currentWeekStart = currentWeekStart.minusWeeks(1);
+        renderWeek(currentWeekStart);
+    }
     
     
     
     
     
+   
+   
     //find a way to get the user to add all the parameters within a schedule item into this class, 
     //perhaps have the button load up another screen to add all the details to the item
     @FXML
@@ -142,10 +230,10 @@ public class TimetableController {
     public void confirmItemAddition() {
     	
 
-    	if(itemName.getText().isEmpty() == false && datePicker.getValue() != null && timeSpinner.getValue() != null) {
+    	if(itemName.getText().isEmpty() == false && datePicker.getValue() != null && timeSpinner.getValue() != null && durationSpinner != null) {
     		//make the values match from all of the items here
     		//realising i missed an item that allows the user to pick the duration of task
-    		ScheduleItem inputtedItem = new ScheduleItem(datePicker.getValue(), timeSpinner.getValue(),itemName.getText(), null);
+    		ScheduleItem inputtedItem = new ScheduleItem(datePicker.getValue(), timeSpinner.getValue(),itemName.getText(), durationSpinner.getValue());
     		db.addNewItem(inputtedItem);
     		System.out.println(db.toString());
     		

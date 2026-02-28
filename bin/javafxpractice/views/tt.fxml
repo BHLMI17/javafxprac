@@ -30,7 +30,10 @@
          <top>
             <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                <children>
+                  <Label fx:id="mondayLabel" text="WeekLabel" />
                   <Button fx:id="AddItemButton" mnemonicParsing="false" onAction="#addItemToSchedule" text="Add New Item " />
+                  <Button fx:id="pWB" mnemonicParsing="false" onAction="#previousWeek" text="Previous Week" />
+                  <Button fx:id="nWB" mnemonicParsing="false" onAction="#nextWeek" text="Next Week" />
                </children>
             </HBox>
          </top>
