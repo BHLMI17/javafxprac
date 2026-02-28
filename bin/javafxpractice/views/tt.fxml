@@ -22,7 +22,7 @@
 
                     <content>
                         <!-- This is your timetable canvas -->
-                        <AnchorPane fx:id="timetablePane" minHeight="0" minWidth="0" />
+                        <AnchorPane fx:id="timetablePane"/>
                     </content>
 
                 </ScrollPane>

@@ -45,18 +45,20 @@ public class TimetableController {
     
     
 //    @FXML private Button NSButton;
-    private String[] dayName = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
+//    private String[] dayName = {"Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"};
     private final ScheduleDB db = new ScheduleDB();
     
-    
+    //date related values
     LocalDate selected = LocalDate.now(); // or from DatePicker
     LocalDate monday = selected.with(DayOfWeek.MONDAY);
     private LocalDate currentWeekStart;
     
+    //ui values
     private static final int HOURS = 24;
     private static final int DAYS = 7;
     private static final double DAY_WIDTH = 200; // pixels per day
     private static final double HOUR_HEIGHT = 80; // pixels per hour
+    private Label[] dayLabels = new Label[7];
     
     
     
@@ -64,111 +66,105 @@ public class TimetableController {
     
     @FXML
     public void initialize() {
-    	List<LocalTime> times = new ArrayList<>();
-    	
-    	
 
-    	
-    	
-    	
-    	
-    		//need to instantiate a new arraylist for all the possible durations of the event
-    	    ObservableList<Duration> durations = FXCollections.observableArrayList();
+        // ------------------------------------------------------------
+        // 1. Establish the current week BEFORE rendering anything
+        // ------------------------------------------------------------
+        currentWeekStart = LocalDate.now().with(DayOfWeek.MONDAY);
 
-    	    Duration min = Duration.ofMinutes(15);
-    	    Duration max = Duration.ofHours(5);
-    	    Duration step = Duration.ofMinutes(15);
-    	    
-    	    //incrementing the duration
-    	    for (Duration d = min; !d.minus(max).isPositive(); d = d.plus(step)) {
-    	        durations.add(d);
-    	    }
+        // ------------------------------------------------------------
+        // 2. Prepare the timetable canvas size
+        // ------------------------------------------------------------
+        timetablePane.setPrefHeight(HOURS * HOUR_HEIGHT);
+        timetablePane.setPrefWidth(DAYS * DAY_WIDTH);
 
-    	    //setting spinner values
-    	    SpinnerValueFactory<Duration> durationFactory =
-    	        new SpinnerValueFactory.ListSpinnerValueFactory<>(durations);
-    	    //converter
-    	    durationFactory.setConverter(new StringConverter<Duration>() {
-    	        @Override
-    	        public String toString(Duration d) {
-    	            long hours = d.toHours();
-    	            long minutes = d.toMinutesPart();
+        // ------------------------------------------------------------
+        // 3. Create static UI elements (day labels, grid lines)
+        // ------------------------------------------------------------
+        createDayLabels();      // creates labels ONCE
+        generateHourLines();    // horizontal hour lines
+        generateDayLines();     // vertical day lines
+        generateHOD();          // hour-of-day labels
 
-    	            if (hours > 0 && minutes > 0) return hours + "h " + minutes + "m";
-    	            if (hours > 0) return hours + "h";
-    	            return minutes + "m";
-    	        }
+        // ------------------------------------------------------------
+        // 4. Render the week (updates day labels + events)
+        // ------------------------------------------------------------
+        renderWeek(currentWeekStart);
 
-    	        @Override
-    	        public Duration fromString(String s) {
-    	            return null; // only needed if editable
-    	        }
-    	    });
+        // ------------------------------------------------------------
+        // 5. Build the list of valid LocalTime values (00:00 → 23:45)
+        // ------------------------------------------------------------
+        List<LocalTime> times = new ArrayList<>();
+        for (int hour = 0; hour < 24; hour++) {
+            for (int minute = 0; minute < 60; minute += 15) {
+                times.add(LocalTime.of(hour, minute));
+            }
+        }
 
-    	    durationSpinner.setValueFactory(durationFactory);
-    	    durationSpinner.setEditable(false);
-    	
-    	    
-    	
-    	currentWeekStart = LocalDate.now().with(DayOfWeek.MONDAY);
-    	renderWeek(currentWeekStart);
-    	
-    	
-    	for(int hour = 0; hour < 24; hour++) {
-    		for(int minute = 0; minute < 60; minute +=15) {
-    			times.add(LocalTime.of(hour, minute));
-    		}
-    	}
-
-        // Make timetablePane resize with ScrollPane viewport
-        timeScroll.viewportBoundsProperty().addListener((obs, oldVal, newVal) -> {
-//            timetablePane.setPrefWidth(newVal.getWidth());
-        });
-        
-        
-
-        // Give the timetable enough height to scroll
-        timetablePane.setPrefHeight((HOURS + 1) * HOUR_HEIGHT);
-        
-     // Give the timetable enough width to scroll
-        timetablePane.setPrefWidth((DAYS + 1) * DAY_WIDTH);
-        
-
-        // Generate the hour lines
-        generateHourLines();
-        
-        //Generate the day lines
-        generateDayLines();
-        
-        //Add the date at the top of each row on the graph
-        generateDOW();
-        
-        //Add the time on the side of each column on the graph
-        generateHOD();
-
-        // Optional: test line
-//        addTestLine();
-        
-        
+        // ------------------------------------------------------------
+        // 6. Configure the time spinner (start time of event)
+        // ------------------------------------------------------------
         SpinnerValueFactory<LocalTime> timeFactory =
-                new SpinnerValueFactory.ListSpinnerValueFactory<>(
-                    FXCollections.observableArrayList(times)
-                );
+            new SpinnerValueFactory.ListSpinnerValueFactory<>(
+                FXCollections.observableArrayList(times)
+            );
 
-            timeFactory.setConverter(new StringConverter<LocalTime>() {
-                @Override
-                public String toString(LocalTime time) {
-                    return time.format(DateTimeFormatter.ofPattern("HH:mm"));
-                }
+        timeFactory.setConverter(new StringConverter<LocalTime>() {
+            @Override
+            public String toString(LocalTime time) {
+                return time.format(DateTimeFormatter.ofPattern("HH:mm"));
+            }
 
-                @Override
-                public LocalTime fromString(String string) {
-                    return LocalTime.parse(string, DateTimeFormatter.ofPattern("HH:mm"));
-                }
-            });
+            @Override
+            public LocalTime fromString(String string) {
+                return LocalTime.parse(string, DateTimeFormatter.ofPattern("HH:mm"));
+            }
+        });
 
-            timeSpinner.setValueFactory(timeFactory);
+        timeSpinner.setValueFactory(timeFactory);
 
+        // ------------------------------------------------------------
+        // 7. Configure the duration spinner (15 min → 5 hours)
+        // ------------------------------------------------------------
+        ObservableList<Duration> durations = FXCollections.observableArrayList();
+
+        Duration min = Duration.ofMinutes(15);
+        Duration max = Duration.ofHours(5);
+        Duration step = Duration.ofMinutes(15);
+
+        for (Duration d = min; !d.minus(max).isPositive(); d = d.plus(step)) {
+            durations.add(d);
+        }
+
+        SpinnerValueFactory<Duration> durationFactory =
+            new SpinnerValueFactory.ListSpinnerValueFactory<>(durations);
+
+        durationFactory.setConverter(new StringConverter<Duration>() {
+            @Override
+            public String toString(Duration d) {
+                long hours = d.toHours();
+                long minutes = d.toMinutesPart();
+
+                if (hours > 0 && minutes > 0) return hours + "h " + minutes + "m";
+                if (hours > 0) return hours + "h";
+                return minutes + "m";
+            }
+
+            @Override
+            public Duration fromString(String s) {
+                return null; // spinner not editable
+            }
+        });
+
+        durationSpinner.setValueFactory(durationFactory);
+        durationSpinner.setEditable(false);
+
+        // ------------------------------------------------------------
+        // 8. ScrollPane behaviour (optional future resizing logic)
+        // ------------------------------------------------------------
+        timeScroll.viewportBoundsProperty().addListener((obs, oldVal, newVal) -> {
+            // Reserved for dynamic resizing if needed
+        });
     }
 
    
@@ -182,6 +178,7 @@ public class TimetableController {
 
         // Update your UI labels here
          mondayLabel.setText("Week Beginning:" + week.get(0).toString());
+         updateDayLabels();
         // ...
     }
     
@@ -259,6 +256,17 @@ public class TimetableController {
         }
     }
     
+    private void createDayLabels() {
+        for (int i = 0; i < 7; i++) {
+            Label lbl = new Label();
+            lbl.setLayoutX((i + 1) * DAY_WIDTH + 10);
+            lbl.setLayoutY(0);
+
+            dayLabels[i] = lbl;
+            timetablePane.getChildren().add(lbl);
+        }
+    }
+    
     
        
     private void generateHourLines() {
@@ -280,14 +288,13 @@ public class TimetableController {
     
     
     //generate the day label at the right place
-    private void generateDOW() {
-    	for (int i = 1; i<=DAYS; i++) {
-    	Label dayLabel = new Label();
-    	dayLabel.setLayoutX((i * DAY_WIDTH) + 10);
-    	dayLabel.setLayoutY(0);
-    	dayLabel.setText(dayName[i-1]);
-    	timetablePane.getChildren().add(dayLabel);
-    	}
+    private void updateDayLabels() {
+        for (int i = 0; i < 7; i++) {
+            DayOfWeek dow = DayOfWeek.of(i + 1);
+            LocalDate date = getDateFor(dow);
+
+            dayLabels[i].setText(dow.name() + " " + date);
+        }
     }
     
     //generate the hour labels at the correct location
@@ -305,6 +312,11 @@ public class TimetableController {
         	
         	timetablePane.getChildren().add(hourLabel);
         	}
+    }
+    
+    
+    public LocalDate getDateFor(DayOfWeek day) {
+        return currentWeekStart.plusDays(day.getValue() - 1);
     }
     
     
