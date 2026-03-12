@@ -11,6 +11,7 @@ import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Group;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -22,6 +23,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
 import javafx.util.StringConverter;
 import javafxpractice.utils.ScheduleDB;
 import javafxpractice.utils.ScheduleItem;
@@ -41,7 +43,7 @@ public class TimetableController {
     @FXML private Label mondayLabel;
     @FXML private Button pWB;
     @FXML private Button nWB;
-    
+    private final List<ScheduleItem> allEvents = new ArrayList<>();
     
     
 //    @FXML private Button NSButton;
@@ -170,16 +172,30 @@ public class TimetableController {
    
     
     public void renderWeek(LocalDate weekStart) {
-        List<LocalDate> week = new ArrayList<>();
 
+        // Sync internal state with the requested week
+        currentWeekStart = weekStart;
+
+        List<LocalDate> week = new ArrayList<>();
         for (int i = 0; i < 7; i++) {
             week.add(weekStart.plusDays(i));
         }
 
-        // Update your UI labels here
-         mondayLabel.setText("Week Beginning:" + week.get(0).toString());
-         updateDayLabels();
-        // ...
+        mondayLabel.setText("Week Beginning:" + week.get(0));
+        updateDayLabels();
+
+        clearOldEvents();
+
+        List<ScheduleItem> events = getEventsForCurrentWeek();
+
+        for (ScheduleItem event : events) {
+            drawUIElement(event);
+        }
+    }
+    
+    
+    private void clearOldEvents() {
+        timetablePane.getChildren().removeIf(node -> node.getStyleClass().contains("event"));
     }
     
     
@@ -227,14 +243,87 @@ public class TimetableController {
     public void confirmItemAddition() {
     	
 
-    	if(itemName.getText().isEmpty() == false && datePicker.getValue() != null && timeSpinner.getValue() != null && durationSpinner != null) {
-    		//make the values match from all of the items here
-    		//realising i missed an item that allows the user to pick the duration of task
-    		ScheduleItem inputtedItem = new ScheduleItem(datePicker.getValue(), timeSpinner.getValue(),itemName.getText(), durationSpinner.getValue());
+    	ScheduleItem inputtedItem = new ScheduleItem(
+    		    datePicker.getValue(),
+    		    timeSpinner.getValue(),
+    		    itemName.getText(),
+    		    durationSpinner.getValue()
+    		);
+
+    		allEvents.add(inputtedItem);   // <-- THIS WAS MISSING
+
     		db.addNewItem(inputtedItem);
-    		System.out.println(db.toString());
+
+    		renderWeek(currentWeekStart);  // redraw properly   		
     		
     	}
+    	
+    
+    
+    public List<ScheduleItem> getEventsForCurrentWeek() {
+        LocalDate start = currentWeekStart;
+        LocalDate end = currentWeekStart.plusDays(6);
+
+        return allEvents.stream()
+            .filter(e -> !e.getDate().isBefore(start) && !e.getDate().isAfter(end))
+            .toList();
+    }
+    
+    
+    
+    private void drawUIElement(ScheduleItem event) {
+    	//in here, this will describe drawing the rectangle of the event 
+    	//also maybe the label of the element describing it
+    	int columnIndex = event.getDate().getDayOfWeek().getValue() - 1;
+    	double x = (columnIndex + 1) * DAY_WIDTH + 10;
+    	double y = event.getTime().getHour() * HOUR_HEIGHT
+    	         + (event.getTime().getMinute() / 60.0) * HOUR_HEIGHT;
+    	
+    	
+    	// Compute rectangle size
+    	double height = (event.getDuration().toMinutes() / 60.0) * HOUR_HEIGHT;
+    	double width = DAY_WIDTH - 20;
+
+    	// Create rectangle
+    	Rectangle eventRectangle = new Rectangle(width, height);
+    	eventRectangle.setFill(Color.rgb(0, 128, 255, 0.5));
+    	eventRectangle.setArcWidth(10);
+    	eventRectangle.setArcHeight(10);
+
+    	
+    	//create the label
+    	Label eventLabel = new Label(event.getTask());
+    	eventLabel.setWrapText(true);
+    	eventLabel.setEllipsisString("…");
+
+    	// match the rectangle width (minus padding)
+    	eventLabel.setMaxWidth(width - 10);
+
+    	// match the rectangle height (minus padding)
+    	eventLabel.setMaxHeight(height - 10);
+    	eventLabel.setPrefHeight(height - 10);
+
+    	// padding inside the rectangle
+    	eventLabel.setTranslateX(5);
+    	eventLabel.setTranslateY(5);
+
+    	// Add padding inside the rectangle
+    	eventLabel.setTranslateX(5);
+    	eventLabel.setTranslateY(5);
+
+    	// Group them
+    	Group eventGroup = new Group(eventRectangle, eventLabel);
+
+    	// Position the whole event block
+    	eventGroup.setLayoutX(x);
+    	eventGroup.setLayoutY(y);
+
+    	// Add to timetable
+    	timetablePane.getChildren().add(eventGroup);
+    	
+    	//node creation
+    	eventGroup.getStyleClass().add("event");
+    	
     	
     }
     
@@ -256,16 +345,7 @@ public class TimetableController {
         }
     }
     
-    private void createDayLabels() {
-        for (int i = 0; i < 7; i++) {
-            Label lbl = new Label();
-            lbl.setLayoutX((i + 1) * DAY_WIDTH + 10);
-            lbl.setLayoutY(0);
-
-            dayLabels[i] = lbl;
-            timetablePane.getChildren().add(lbl);
-        }
-    }
+    
     
     
        
@@ -297,6 +377,20 @@ public class TimetableController {
         }
     }
     
+    
+    private void createDayLabels() {
+        for (int i = 0; i < 7; i++) {
+            Label lbl = new Label();
+            lbl.setLayoutX((i + 1) * DAY_WIDTH + 10);
+            lbl.setLayoutY(0);
+
+            dayLabels[i] = lbl;
+            timetablePane.getChildren().add(lbl);
+        }
+    }
+    
+    
+    
     //generate the hour labels at the correct location
     private void generateHOD() {
     	for (int i = 1; i<=HOURS; i++) {
@@ -321,12 +415,5 @@ public class TimetableController {
     
     
 
-//    private void addTestLine() {
-//        Line testLine = new Line(0, 100, 0, 100);
-//        testLine.endXProperty().bind(timetablePane.widthProperty());
-//        testLine.setStroke(Color.RED);
-//        testLine.setStrokeWidth(2);
-//
-//        timetablePane.getChildren().add(testLine);
-//    }
+
 }
