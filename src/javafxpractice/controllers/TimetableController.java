@@ -250,7 +250,7 @@ public class TimetableController {
     		    durationSpinner.getValue()
     		);
 
-    		allEvents.add(inputtedItem);   // <-- THIS WAS MISSING
+    		allEvents.add(inputtedItem);   // <-- add the item to the list of events
 
     		db.addNewItem(inputtedItem);
 
